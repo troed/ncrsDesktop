@@ -54,6 +54,22 @@ The hook guards `~/Nextcloud` by default. To guard other mount points, set `NCRS
 ## Usage
 Download and install the .deb file from the [/releases](https://github.com/rgon/ncrsDesktop/releases) page. You may simply double click the `.deb` to install it with your OS's package manager.
 
+### openSUSE (Leap 16, Slowroll, Tumbleweed)
+The `.rpm` packages the same client as the `.deb` (GUI tray app, daemon, GNOME search provider, CR3 thumbnailer, Nautilus extension, and the KF6 Dolphin plugin + ServiceMenu). It is built from source, so the build host needs `cargo`, `pnpm`, `rpm-build` and the BuildRequires listed in `packaging/ncrs.spec` — a `opensuse/tumbleweed` container has them all:
+
+```sh
+bash scripts/build-rpm.sh            # -> dist/ncrs-<version>-0.<arch>.rpm
+```
+
+Install it:
+```sh
+sudo zypper in ./dist/ncrs-*.rpm
+```
+
+The GUI tray app autostarts at login via `/etc/xdg/autostart/es.rgon.ncrs.desktop`, exactly like the `.deb`. The **headless alternative** is `systemctl --user enable --now ncrs.service`, which runs the daemon without the GUI; the two coexist (see *Provisioning* above).
+
+The Nautilus sync-state emblems need `python-nautilus`. On Leap 16 it may not be in the OSS repo — enable the Package Hub for your release and install it from there if `zypper` cannot find it. The Dolphin integration ships inside the RPM, so it needs nothing extra.
+
 ### First-time setup
 You may directly set it up using the GUI, following the interactive 'Authorize Device'-type login from the web browser. This issues a revocable Nextcloud app password, which is saved in your OS keyring (GNOME Keyring/KWallet).
 
@@ -75,7 +91,7 @@ The file looks like this. You shall use an [app password](https://docs.nextcloud
 url: https://cloud.example.com/remote.php/dav/files/YOUR_USERNAME/
 username: youruser
 password: xxxx-xxxx-xxxx-xxxx   # app password (optional) or fetched/saved from the system keyring
-mount_point: /home/you/ncrs
+mount_point: /home/<user>/ncrs
 user: youruser
 ```
 
