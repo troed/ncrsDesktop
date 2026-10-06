@@ -235,7 +235,17 @@ if $CONTAINER; then
             test -x /usr/bin/ncrs-ctl || { echo 'FAIL: ncrs-ctl missing'; exit 1; }
             test -f /usr/share/nautilus-python/extensions/ncrs-syncstate.py || { echo 'FAIL: nautilus extension missing'; exit 1; }
             if rpm -qa --qf '%{NAME}\n' | grep -qE '^(nautilus|dolphin|python-nautilus|kf6-)'; then echo 'FAIL: installing ncrs pulled in desktop-specific packages'; exit 1; fi
-            test -f /usr/share/doc/ncrs/config.yaml.example || { echo 'FAIL: example config missing'; exit 1; }
+            # openSUSE container images exclude /usr/share/doc by policy, so the
+            # example config can legitimately be absent from the installed tree
+            # even though the package carries it (the rpm -qlp content check
+            # above asserts that). Fail only if the package itself lacks it.
+            if [ -f /usr/share/doc/ncrs/config.yaml.example ]; then
+                echo 'example config installed'
+            elif rpm -q --list ncrs | grep -qx '/usr/share/doc/ncrs/config.yaml.example'; then
+                echo 'note: example config is in the package but not installed (image excludes docs)'
+            else
+                echo 'FAIL: example config missing from the package'; exit 1
+            fi
             test ! -e /etc/systemd/user/default.target.wants/ncrs.service || { echo 'FAIL: ncrs.service globally enabled'; exit 1; }
             /usr/bin/ncrs --print-default-config | grep -q 'ncRS Desktop configuration' || { echo 'FAIL: ncrs --print-default-config'; exit 1; }
             $GUI_CHECKS
