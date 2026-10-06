@@ -17,6 +17,17 @@
 %bcond_without gui
 %bcond_without dolphin
 
+# No debuginfo subpackage: this is a local/CI artifact, and rpm's default
+# debug_package subpackage fails to assemble when a --skip-build tarball has no
+# ELF files. Matches scripts/build-rpm.sh's --define (which stays, harmlessly).
+%global debug_package %{nil}
+
+# The KF6 Dolphin overlay plugin links Qt6/KF6 sonames, but only Dolphin dlopens
+# it and Dolphin already pulls in those libraries. Excluding libQt*/libKF*
+# soname Requires keeps desktop integration soft, per this spec's rule; nothing
+# else in the package links Qt/KF, so the filter hides no real dependency.
+%global __requires_exclude ^lib(Qt|KF)[0-9].*
+
 Name:           ncrs
 Version:        @VERSION@
 Release:        0
@@ -60,7 +71,15 @@ BuildRequires:  kf6-kcoreaddons-devel
 Requires:       fuse3
 %if %{with gui}
 Requires:       libwebkit2gtk-4_1-0
+# libayatana-appindicator3-1 (the tray icon backend) is Package Hub-only on
+# Leap 16, not in OSS/Update, so a hard Requires would make the .rpm
+# uninstallable on a stock Leap 16. Keep it hard on Tumbleweed/Slowroll and
+# soft on Leap 16; without it the GUI still runs, only the tray icon is absent.
+%if 0%{?sle_version} >= 160000
+Recommends:     libayatana-appindicator3-1
+%else
 Requires:       libayatana-appindicator3-1
+%endif
 %endif
 Recommends:     libcap-progs
 Recommends:     python3-gobject
@@ -259,8 +278,12 @@ if command -v gtk-update-icon-cache >/dev/null 2>&1; then
 fi
 
 %posttrans
-# python-nautilus (Suggests) may have installed its loader after ncrs, or
-# Nautilus itself was upgraded: reload so the extension loads now.
+# Reload Nautilus at the end of the transaction that installs/upgrades ncrs (and
+# if Nautilus itself was upgraded alongside). RPM posttrans runs only for the
+# *current* transaction, so the .deb's dpkg-trigger behavior is NOT reproduced
+# when python-nautilus (Suggests) is installed later, in a separate transaction:
+# this scriptlet does not run then, and Nautilus must be restarted for the
+# extension to load.
 reload_nautilus() {
     if command -v nautilus >/dev/null 2>&1 && command -v runuser >/dev/null 2>&1; then
         for user in $(who | awk '{print $1}' | sort -u); do

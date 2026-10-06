@@ -39,13 +39,13 @@ REQUIRE_DOLPHIN=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --version)         VERSION="$2"; shift 2 ;;
-        --out-dir)         OUT_DIR="$2"; shift 2 ;;
-        --source-tar)      SOURCE_TAR="$2"; shift 2 ;;
+        --version)         VERSION="${2:?--version requires a value}"; shift 2 ;;
+        --out-dir)         OUT_DIR="${2:?--out-dir requires a value}"; shift 2 ;;
+        --source-tar)      SOURCE_TAR="${2:?--source-tar requires a value}"; shift 2 ;;
         --skip-build)      SKIP_BUILD=true; shift ;;
         --skip-gui)        SKIP_GUI=true; shift ;;
         --skip-dolphin)    SKIP_DOLPHIN=true; shift ;;
-        --dolphin-stage)   DOLPHIN_STAGES+=("$2"); shift 2 ;;
+        --dolphin-stage)   DOLPHIN_STAGES+=("${2:?--dolphin-stage requires a value}"); shift 2 ;;
         --require-dolphin) REQUIRE_DOLPHIN=true; shift ;;
         -h|--help)         awk 'NR>1 && !/^#/{exit} NR>1{sub(/^# ?/,""); print}' "$0"; exit 0 ;;
         *) echo "Unknown option: $1 (see --help)" >&2; exit 2 ;;
@@ -218,9 +218,18 @@ mkdir -p "$OUT_DIR"
 for rpm in "${RPMS[@]}"; do
     cp "$rpm" "$OUT_DIR/"
 done
-RPM_PATH="$OUT_DIR/$(basename "${RPMS[0]}")"
 
 echo ""
-echo "✓ Built: $RPM_PATH"
-echo "  Install with: sudo zypper install --allow-unsigned-rpm ./$RPM_PATH"
-echo "  Inspect with: rpm -qlp $RPM_PATH"
+for rpm in "${RPMS[@]}"; do
+    dest="$OUT_DIR/$(basename "$rpm")"
+    # A local install path needs ./ so zypper reads it as a file (a bare path
+    # could be taken for a repo package name); an absolute --out-dir already is
+    # unambiguous.
+    case "$dest" in
+        /*) install_arg="$dest" ;;
+        *)  install_arg="./$dest" ;;
+    esac
+    echo "✓ Built: $dest"
+    echo "  Install with: sudo zypper install --allow-unsigned-rpm $install_arg"
+    echo "  Inspect with: rpm -qlp $dest"
+done

@@ -27,9 +27,9 @@ SKIP_DOLPHIN=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --rpm)       RPM="$2"; shift 2 ;;
+        --rpm)       RPM="${2:?--rpm requires a value}"; shift 2 ;;
         --container) CONTAINER=true; shift ;;
-        --image)     IMAGE="$2"; shift 2 ;;
+        --image)     IMAGE="${2:?--image requires a value}"; shift 2 ;;
         --skip-gui)  SKIP_GUI=true; shift ;;
         --skip-dolphin) SKIP_DOLPHIN=true; shift ;;
         -h|--help)   awk 'NR>1 && !/^#/{exit} NR>1{sub(/^# ?/,""); print}' "$0"; exit 0 ;;
@@ -82,6 +82,18 @@ if grep -qE '^(nautilus|dolphin|python-nautilus|kf6-)' <<<"$REQUIRES"; then
     fail "Requires has no desktop-specific packages"
 else
     pass "Requires has no desktop-specific packages"
+fi
+# The Dolphin overlay plugin links Qt6/KF6, but Dolphin (which dlopens it)
+# already brings those libraries, so the spec filters the libQt*/libKF* sonames
+# out of Requires. Guard that filter: a Dolphin-enabled package must not
+# hard-require them. (Only meaningful against a real compiled plugin; the
+# sandbox stub is not an ELF and yields no soname requires.)
+if ! $SKIP_DOLPHIN; then
+    if grep -qE '^lib(Qt|KF)[0-9]' <<<"$REQUIRES"; then
+        fail "Requires has no Qt6/KF6 sonames (Dolphin plugin must stay soft)"
+    else
+        pass "Requires has no Qt6/KF6 sonames (Dolphin plugin must stay soft)"
+    fi
 fi
 # The soft relationships may carry them, and should keep doing so.
 check "Suggests python-nautilus" \

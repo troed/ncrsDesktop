@@ -55,13 +55,13 @@ The hook guards `~/Nextcloud` by default. To guard other mount points, set `NCRS
 Download and install the .deb file from the [/releases](https://github.com/rgon/ncrsDesktop/releases) page. You may simply double click the `.deb` to install it with your OS's package manager.
 
 ### openSUSE (Leap 16, Slowroll, Tumbleweed)
-The `.rpm` packages the same client as the `.deb` (GUI tray app, daemon, GNOME search provider, CR3 thumbnailer, Nautilus extension, and the KF6 Dolphin plugin + ServiceMenu). It is built from source, so the build host needs `cargo`, `pnpm`, `rpm-build` and the BuildRequires listed in `packaging/ncrs.spec` — an `opensuse/tumbleweed` container has them all:
+The `.rpm` packages the same client as the `.deb` (GUI tray app, daemon, GNOME search provider, CR3 thumbnailer, Nautilus extension, and the KF6 Dolphin plugin + ServiceMenu). It is built from source, so the build host needs `cargo`, `pnpm`, `rpm-build` and every `BuildRequires` listed in `packaging/ncrs.spec`. A bare `opensuse/tumbleweed` container does *not* have those installed — install them first (`.github/workflows/ci.yml` has the exact `zypper install` line CI uses):
 
 ```sh
 bash scripts/build-rpm.sh            # -> dist/ncrs-<version>-0.<arch>.rpm
 ```
 
-Install it:
+Install it. The locally built artifact is not GPG-signed, so `zypper` warns that the package is unsigned and prompts for confirmation; pass `--allow-unsigned-rpm` to skip that prompt:
 ```sh
 sudo zypper in ./dist/ncrs-*.rpm
 ```
@@ -69,6 +69,8 @@ sudo zypper in ./dist/ncrs-*.rpm
 The GUI tray app autostarts at login via `/etc/xdg/autostart/es.rgon.ncrs.desktop`, exactly like the `.deb`. The **headless alternative** is `systemctl --user enable --now ncrs.service`, which runs the daemon without the GUI; the two coexist (see *Provisioning* below).
 
 The Nautilus sync-state emblems need `python-nautilus`. On Leap 16 it may not be in the OSS repo — enable the Package Hub for your release and install it from there if `zypper` cannot find it. The Dolphin integration ships inside the RPM, so it needs nothing extra.
+
+On **openSUSE Leap 16** the tray icon also needs `libayatana-appindicator3-1`, which is Package Hub–only (not in OSS/Update). Enable the Package Hub and install it to get the tray icon. It is a `Recommends` on Leap 16, not a hard dependency, so a stock install succeeds without it and the GUI runs — you just get no tray icon.
 
 ### First-time setup
 You may directly set it up using the GUI, following the interactive 'Authorize Device'-type login from the web browser. This issues a revocable Nextcloud app password, which is saved in your OS keyring (GNOME Keyring/KWallet).

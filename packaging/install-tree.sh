@@ -30,11 +30,11 @@ DOLPHIN_STAGES=()
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --dest)            DEST="$2"; shift 2 ;;
-        --bin-dir)         BIN_DIR="$2"; shift 2 ;;
+        --dest)            DEST="${2:?--dest requires a value}"; shift 2 ;;
+        --bin-dir)         BIN_DIR="${2:?--bin-dir requires a value}"; shift 2 ;;
         --skip-gui)        SKIP_GUI=true; shift ;;
         --skip-dolphin)    SKIP_DOLPHIN=true; shift ;;
-        --dolphin-stage)   DOLPHIN_STAGES+=("$2"); shift 2 ;;
+        --dolphin-stage)   DOLPHIN_STAGES+=("${2:?--dolphin-stage requires a value}"); shift 2 ;;
         --require-dolphin) REQUIRE_DOLPHIN=true; shift ;;
         -h|--help)         awk 'NR>1 && !/^#/{exit} NR>1{sub(/^# ?/,""); print}' "$0"; exit 0 ;;
         *) echo "Unknown option: $1 (see --help)" >&2; exit 2 ;;
@@ -48,6 +48,15 @@ done
 case "$DEST" in
     /*) ;;
     *) DEST="$PWD/$DEST" ;;
+esac
+
+# Refuse to rm -rf a dangerous destination later on: / or any single-component
+# path (/usr, /tmp, ...). --dest is a throwaway package root, so a two-component
+# minimum rules out the catastrophic cases without constraining real use.
+case "$DEST" in
+    /*/*) ;;
+    *) echo "error: refusing unsafe --dest '$DEST' (need a path with at least two components)" >&2
+       exit 2 ;;
 esac
 
 cd "$REPO_ROOT"
@@ -109,10 +118,12 @@ fi
 if [[ ${#DOLPHIN_STAGES[@]} -eq 0 ]] && ! $SKIP_DOLPHIN; then
     for d in dist/dolphin/*/; do [[ -d "$d" ]] && DOLPHIN_STAGES+=("$d"); done
 fi
-for stage in ${DOLPHIN_STAGES[@]+"${DOLPHIN_STAGES[@]}"}; do
-    [[ -d "$stage" ]] || { echo "error: --dolphin-stage $stage is not a directory" >&2; exit 1; }
-    cp -a "$stage/." "$DEST/"
-done
+if [[ ${#DOLPHIN_STAGES[@]} -gt 0 ]]; then
+    for stage in "${DOLPHIN_STAGES[@]}"; do
+        [[ -d "$stage" ]] || { echo "error: --dolphin-stage $stage is not a directory" >&2; exit 1; }
+        cp -a "$stage/." "$DEST/"
+    done
+fi
 if ! $SKIP_DOLPHIN; then
     if [[ -z "$(find "$DEST" -path '*/overlayicon/ncrsoverlayplugin.so' -print -quit)" ]]; then
         $REQUIRE_DOLPHIN && { echo "error: no Dolphin plugin staged (run scripts/build-dolphin-plugin.sh)" >&2; exit 1; }
