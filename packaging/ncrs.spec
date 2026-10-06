@@ -148,8 +148,12 @@ install_args="$install_args --skip-gui"
 packaging/install-tree.sh $install_args
 
 %files
-%{_defaultdocdir}/ncrs/copyright
-%{_defaultdocdir}/ncrs/config.yaml.example
+# install-tree.sh (shared with the .deb) stages these under /usr/share/doc/ncrs,
+# so list that path. Do not use the default-docdir macro: on openSUSE it resolves
+# to /usr/share/doc/packages and would not match. (No macro names in this comment
+# -- rpm expands macros in comments too, which warns.)
+%{_datadir}/doc/ncrs/copyright
+%{_datadir}/doc/ncrs/config.yaml.example
 %{_bindir}/ncrs
 %{_bindir}/ncrs-open
 %{_bindir}/ncrs-ctl
