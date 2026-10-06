@@ -210,7 +210,7 @@ jobs:
               rpm-build cargo rust gcc gcc-c++ make pkgconf-pkg-config \
               fuse3-devel libopenssl-devel gtk3-devel webkit2gtk3-devel \
               librsvg-devel cmake kf6-extra-cmake-modules qt6-base-devel \
-              kf6-kio-devel kf6-kcoreaddons-devel nodejs22 pnpm git
+              kf6-kio-devel kf6-kcoreaddons-devel nodejs pnpm git
             git config --global --add safe.directory /src
             bash scripts/build-rpm.sh --out-dir dist
             chown -R $(id -u):$(id -g) dist"
@@ -345,7 +345,7 @@ jobs:
               rpm-build cargo rust gcc gcc-c++ make pkgconf-pkg-config \
               fuse3-devel libopenssl-devel gtk3-devel webkit2gtk3-devel \
               librsvg-devel cmake kf6-extra-cmake-modules qt6-base-devel \
-              kf6-kio-devel kf6-kcoreaddons-devel nodejs22 pnpm git
+              kf6-kio-devel kf6-kcoreaddons-devel nodejs pnpm git
             git config --global --add safe.directory /src
             bash scripts/build-rpm.sh --out-dir dist
             chown -R $(id -u):$(id -g) dist"

@@ -55,10 +55,11 @@ BuildRequires:  gtk3-devel
 BuildRequires:  webkit2gtk3-devel
 BuildRequires:  librsvg-devel
 # Frontend (pnpm builds the Tauri web assets). Ask for the generic `nodejs`
-# capability with a floor, not a pinned release: openSUSE's versioned nodejs
-# packages all Provide `nodejs` (e.g. nodejs24 Provides nodejs = 24.18.1), so
-# this accepts whatever default the release ships instead of forcing nodejs22.
-BuildRequires:  nodejs >= 20
+# capability, not a pinned release: openSUSE's versioned nodejs packages all
+# Provide `nodejs` (nodejs24 Provides nodejs), so this accepts whatever default
+# the release ships instead of forcing one. No version floor: the provide may be
+# unversioned, and the distro's node is new enough for the frontend by policy.
+BuildRequires:  nodejs
 BuildRequires:  pnpm
 %endif
 # Dolphin plugin (KF6)
