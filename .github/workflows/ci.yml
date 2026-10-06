@@ -213,6 +213,7 @@ jobs:
       # docker command is one double-quoted host string), so the root-owned
       # files rpmbuild drops into the bind-mounted dist/ come back
       # runner-owned — same trick as the KF6-in-trixie step above.
+      # keep in sync with packaging/ncrs.spec §6.2 BuildRequires
       - name: Build RPM from source (Tumbleweed)
         run: |
           docker run --rm -v "$PWD":/src -w /src opensuse/tumbleweed bash -ec "
@@ -220,7 +221,8 @@ jobs:
               rpm-build cargo rust gcc gcc-c++ make pkgconf-pkg-config \
               fuse3-devel libopenssl-devel gtk3-devel webkit2gtk3-devel \
               librsvg-devel cmake kf6-extra-cmake-modules qt6-base-devel \
-              kf6-kio-devel kf6-kcoreaddons-devel nodejs22 pnpm git
+              kf6-kio-devel kf6-kcoreaddons-devel nodejs22 pnpm git rpmlint
+            git config --global --add safe.directory /src
             bash scripts/build-rpm.sh --out-dir dist
             chown -R $(id -u):$(id -g) dist"
 
@@ -332,6 +334,7 @@ jobs:
       # Rebuild the .rpm from source, exactly as the `rpm` job does. The binary
       # cache only restores what the build job saved, so the .rpm that job built
       # never reaches here; this job has to produce its own before uploading.
+      # keep in sync with packaging/ncrs.spec §6.2 BuildRequires
       - name: Build RPM from source (Tumbleweed)
         run: |
           docker run --rm -v "$PWD":/src -w /src opensuse/tumbleweed bash -ec "
@@ -339,7 +342,8 @@ jobs:
               rpm-build cargo rust gcc gcc-c++ make pkgconf-pkg-config \
               fuse3-devel libopenssl-devel gtk3-devel webkit2gtk3-devel \
               librsvg-devel cmake kf6-extra-cmake-modules qt6-base-devel \
-              kf6-kio-devel kf6-kcoreaddons-devel nodejs22 pnpm git
+              kf6-kio-devel kf6-kcoreaddons-devel nodejs22 pnpm git rpmlint
+            git config --global --add safe.directory /src
             bash scripts/build-rpm.sh --out-dir dist
             chown -R $(id -u):$(id -g) dist"
 
