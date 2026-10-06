@@ -25,6 +25,11 @@
 #   --dolphin-stage DIR Staged Dolphin plugin tree to include (repeatable;
 #                       default: every dist/dolphin/*/ that exists; --skip-build only)
 #   --require-dolphin   Fail instead of warning when no Dolphin plugin is staged
+#   --nodeps            Do not let rpmbuild verify BuildRequires. rpmbuild checks
+#                       the RPM database, so a toolchain installed outside it
+#                       (rustup's cargo, an npm-installed pnpm) cannot satisfy
+#                       `BuildRequires:` even though the tools work. Use this on
+#                       such a host once every -devel package is really present.
 set -euo pipefail
 
 # ── Parse arguments ───────────────────────────────────────────────────────────
@@ -36,6 +41,7 @@ SKIP_GUI=false
 SKIP_DOLPHIN=false
 DOLPHIN_STAGES=()
 REQUIRE_DOLPHIN=false
+NODEPS=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -47,6 +53,7 @@ while [[ $# -gt 0 ]]; do
         --skip-dolphin)    SKIP_DOLPHIN=true; shift ;;
         --dolphin-stage)   DOLPHIN_STAGES+=("${2:?--dolphin-stage requires a value}"); shift 2 ;;
         --require-dolphin) REQUIRE_DOLPHIN=true; shift ;;
+        --nodeps)          NODEPS=true; shift ;;
         -h|--help)         awk 'NR>1 && !/^#/{exit} NR>1{sub(/^# ?/,""); print}' "$0"; exit 0 ;;
         *) echo "Unknown option: $1 (see --help)" >&2; exit 2 ;;
     esac
@@ -203,6 +210,11 @@ if $SKIP_GUI; then
 fi
 if $SKIP_DOLPHIN; then
     RPMBUILD_ARGS+=(--without dolphin)
+fi
+if $NODEPS; then
+    # Skip rpmbuild's BuildRequires verification. For hosts whose toolchain is
+    # not an RPM (rustup cargo, npm-installed pnpm); see --help.
+    RPMBUILD_ARGS+=(--nodeps)
 fi
 
 rpmbuild "${RPMBUILD_ARGS[@]}" "$SPEC"

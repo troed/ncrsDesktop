@@ -54,8 +54,11 @@ BuildRequires:  libopenssl-devel
 BuildRequires:  gtk3-devel
 BuildRequires:  webkit2gtk3-devel
 BuildRequires:  librsvg-devel
-# Frontend (pnpm builds the Tauri web assets)
-BuildRequires:  nodejs22
+# Frontend (pnpm builds the Tauri web assets). Ask for the generic `nodejs`
+# capability with a floor, not a pinned release: openSUSE's versioned nodejs
+# packages all Provide `nodejs` (e.g. nodejs24 Provides nodejs = 24.18.1), so
+# this accepts whatever default the release ships instead of forcing nodejs22.
+BuildRequires:  nodejs >= 20
 BuildRequires:  pnpm
 %endif
 # Dolphin plugin (KF6)
