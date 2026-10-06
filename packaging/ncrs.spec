@@ -112,12 +112,15 @@ but always falls back to normal buffered reads.
 # Override build.rustflags on the command line so --cfg reqwest_unstable
 # survives but the mold link arg does not.
 export CARGO_ENCODED_RUSTFLAGS=$'--cfg\x1freqwest_unstable'
-export HOME="$PWD"
 
+# pnpm/npm want a writable HOME for their cache. Scope it to these two commands:
+# exporting HOME globally hides a user-level rustup toolchain (~/.rustup) from
+# the cargo call below, which then fails with "rustup could not choose a version
+# of cargo ... no default is configured". cargo keeps the real HOME.
 %if %{with gui}
 pushd ncrs-gui
-pnpm install --frozen-lockfile
-pnpm build
+HOME="$PWD" pnpm install --frozen-lockfile
+HOME="$PWD" pnpm build
 popd
 
 cargo build --release -p ncrs_core -p ncrs-gui --features ncrs-gui/custom-protocol
