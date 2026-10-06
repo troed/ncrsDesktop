@@ -221,6 +221,15 @@ if $CONTAINER; then
         fi
         # --allow-unsigned-rpm: the local/CI artifact is not GPG-signed.
         CONTAINER_SCRIPT="
+            # openSUSE container images set rpm.install.excludedocs = yes in
+            # zypp.conf, so /usr/share/doc is skipped on install -- the RPM
+            # analogue of the Debian /etc/dpkg/dpkg.cfg.d/excludes that
+            # test-deb.sh removes. Turn it off so the smoke test sees the whole
+            # payload.
+            if [ -f /etc/zypp/zypp.conf ]; then
+                sed -i 's/^[[:space:]]*rpm\.install\.excludedocs[[:space:]]*=.*/rpm.install.excludedocs = no/' /etc/zypp/zypp.conf
+                grep -q '^rpm\.install\.excludedocs' /etc/zypp/zypp.conf || echo 'rpm.install.excludedocs = no' >> /etc/zypp/zypp.conf
+            fi
             zypper --no-gpg-checks -n install --allow-unsigned-rpm /pkg.rpm
             echo 'installed OK'
             test -x /usr/bin/ncrs-ctl || { echo 'FAIL: ncrs-ctl missing'; exit 1; }
