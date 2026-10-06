@@ -208,7 +208,7 @@ jobs:
           docker run --rm -v "$PWD":/src -w /src opensuse/tumbleweed bash -ec "
             zypper -n install --no-recommends \
               rpm-build cargo rust gcc gcc-c++ make pkgconf-pkg-config \
-              fuse3-devel libopenssl-devel gtk3-devel webkit2gtk3-devel \
+              fuse3-devel libopenssl-devel gtk3-devel webkitgtk3-devel \
               librsvg-devel cmake kf6-extra-cmake-modules qt6-base-devel \
               kf6-kio-devel kf6-kcoreaddons-devel nodejs pnpm git
             git config --global --add safe.directory /src
@@ -343,7 +343,7 @@ jobs:
           docker run --rm -v "$PWD":/src -w /src opensuse/tumbleweed bash -ec "
             zypper -n install --no-recommends \
               rpm-build cargo rust gcc gcc-c++ make pkgconf-pkg-config \
-              fuse3-devel libopenssl-devel gtk3-devel webkit2gtk3-devel \
+              fuse3-devel libopenssl-devel gtk3-devel webkitgtk3-devel \
               librsvg-devel cmake kf6-extra-cmake-modules qt6-base-devel \
               kf6-kio-devel kf6-kcoreaddons-devel nodejs pnpm git
             git config --global --add safe.directory /src

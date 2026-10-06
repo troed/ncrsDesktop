@@ -61,7 +61,7 @@ The `.rpm` packages the same client as the `.deb` (GUI tray app, daemon, GNOME s
 bash scripts/build-rpm.sh            # -> dist/ncrs-<version>-0.<arch>.rpm
 ```
 
-On a host whose toolchain is not installed as RPMs — **rustup**'s `cargo`, or an `npm`-installed `pnpm` — `rpmbuild` cannot see them and stops with `Failed build dependencies:`. Install the `-devel` packages the spec needs (`fuse3-devel`, `gtk3-devel`, `webkit2gtk3-devel`, `kf6-kio-devel`, `librsvg-devel`, plus `cmake`/`qt6-base-devel`/`kf6-kcoreaddons-devel`/`kf6-extra-cmake-modules`), then build with `--nodeps`:
+On a host whose toolchain is not installed as RPMs — **rustup**'s `cargo`, or an `npm`-installed `pnpm` — `rpmbuild` cannot see them and stops with `Failed build dependencies:`. Install the `-devel` packages the spec needs (`fuse3-devel`, `gtk3-devel`, `webkitgtk3-devel`, `kf6-kio-devel`, `librsvg-devel`, plus `cmake`/`qt6-base-devel`/`kf6-kcoreaddons-devel`/`kf6-extra-cmake-modules`), then build with `--nodeps`:
 
 ```sh
 bash scripts/build-rpm.sh --nodeps

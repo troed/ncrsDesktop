@@ -52,7 +52,10 @@ BuildRequires:  libopenssl-devel
 # GUI (Tauri) -- only needed when the tray app is built.
 %if %{with gui}
 BuildRequires:  gtk3-devel
-BuildRequires:  webkit2gtk3-devel
+# openSUSE names the WebKitGTK-4.1 (GTK3) development package `webkitgtk3-devel`.
+# The "3" is GTK3, and it is NOT `webkit2gtk3-devel` -- that name no longer
+# exists on current Tumbleweed/Slowroll (zypper: "No provider ... found").
+BuildRequires:  webkitgtk3-devel
 BuildRequires:  librsvg-devel
 # Frontend (pnpm builds the Tauri web assets). Ask for the generic `nodejs`
 # capability, not a pinned release: openSUSE's versioned nodejs packages all
