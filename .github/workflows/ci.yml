@@ -218,9 +218,8 @@ jobs:
       - name: Test RPM (Tumbleweed)
         run: bash scripts/test-rpm.sh --container --image opensuse/tumbleweed
 
-      # Best-effort cross-release install tests: the same Tumbleweed-built .rpm
-      # is installed on the other openSUSE targets to catch Leap-16-specific
-      # dependency gaps (notably libayatana-appindicator3). These are NOT
+      # Best-effort cross-release install test: the same Tumbleweed-built .rpm
+      # is installed on Leap 16 to catch Leap-16-specific dependency gaps (notably libayatana-appindicator3). These are NOT
       # per-target builds — a failure here may be a glibc/WebKit/Qt ABI mismatch
       # unrelated to this packaging, and means per-target builds are needed (the
       # deferred OBS path), not that the packaging is broken. If the Leap 16 tag
@@ -228,23 +227,11 @@ jobs:
       - name: Test RPM install (Leap 16)
         run: bash scripts/test-rpm.sh --container --image opensuse/leap:16.0
 
-      - name: Test RPM install (Slowroll)
-        run: |
-          # Only a genuine absence of the image skips the test; any other
-          # manifest failure (network, auth, daemon) must fail the step so it is
-          # not silently masked as "not published".
-          if ! manifest_err="$(docker manifest inspect opensuse/slowroll:latest 2>&1)"; then
-            case "$manifest_err" in
-              *"manifest unknown"*|*"no such manifest"*|*"404"*)
-                echo "opensuse/slowroll image is not published; skipping install test"
-                exit 0 ;;
-              *)
-                echo "$manifest_err" >&2
-                echo "error: docker manifest inspect failed unexpectedly" >&2
-                exit 1 ;;
-            esac
-          fi
-          bash scripts/test-rpm.sh --container --image opensuse/slowroll:latest
+      # No Slowroll job: there is no published Slowroll container image
+      # (registry.opensuse.org/v2/opensuse/slowroll/tags/list -> 404, and no
+      # opensuse/slowroll on Docker Hub). Slowroll is a Tumbleweed derivative,
+      # so the Tumbleweed build above covers it; the author also builds and runs
+      # the RPM on a Slowroll host directly.
 
   # ── Release ──────────────────────────────────────────────────────────────────
   # release-please runs TWICE per master push, as two separate jobs, and the
