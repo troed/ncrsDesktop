@@ -129,8 +129,9 @@ cargo build --release -p ncrs_core
 %endif
 
 %if %{with dolphin}
-# Dolphin overlay plugin + ServiceMenu, KF6 only.
-bash scripts/build-dolphin-plugin.sh --kf6 --dest dolphin-stage
+# Dolphin overlay plugin + ServiceMenu. build-dolphin-plugin.sh defaults to
+# Qt6/KF6 (pass --kf5 for Plasma 5), so no version flag is needed here.
+bash scripts/build-dolphin-plugin.sh --dest dolphin-stage
 %endif
 %endif
 

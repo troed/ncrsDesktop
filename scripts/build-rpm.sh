@@ -124,7 +124,7 @@ fi
 if $SKIP_BUILD && [[ -z "$SOURCE_TAR" ]] && ! $SKIP_DOLPHIN && ! $HAVE_DOLPHIN_PLUGIN; then
     if $REQUIRE_DOLPHIN; then
         echo "error: no Dolphin plugin staged (looked for ${DOLPHIN_PLUGIN_REL#/} under dist/dolphin/*/);" >&2
-        echo "       build it with scripts/build-dolphin-plugin.sh --kf6, or pass --skip-dolphin" >&2
+        echo "       build it with scripts/build-dolphin-plugin.sh, or pass --skip-dolphin" >&2
         exit 1
     fi
     echo "  warning: no Dolphin plugin staged; the package will have no Dolphin emblems"
