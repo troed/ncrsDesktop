@@ -24,7 +24,9 @@ Summary:        Nextcloud FUSE virtual filesystem client
 License:        GPL-3.0-or-later
 URL:            https://github.com/rgon/ncrsDesktop
 Source0:        %{name}-%{version}.tar.gz
-BuildArch:      x86_64
+# Arch-specific binary package: ExclusiveArch (not BuildArch, which declares
+# noarch) both expresses "x86_64 only" and satisfies rpmlint.
+ExclusiveArch:  x86_64
 
 # Toolchain
 BuildRequires:  cargo
@@ -36,26 +38,30 @@ BuildRequires:  pkgconf-pkg-config
 # Core
 BuildRequires:  fuse3-devel
 BuildRequires:  libopenssl-devel
-# GUI (Tauri)
+# GUI (Tauri) -- only needed when the tray app is built.
+%if %{with gui}
 BuildRequires:  gtk3-devel
 BuildRequires:  webkit2gtk3-devel
 BuildRequires:  librsvg-devel
+# Frontend (pnpm builds the Tauri web assets)
+BuildRequires:  nodejs22
+BuildRequires:  pnpm
+%endif
 # Dolphin plugin (KF6)
 BuildRequires:  cmake
 BuildRequires:  kf6-extra-cmake-modules
 BuildRequires:  qt6-base-devel
 BuildRequires:  kf6-kio-devel
 BuildRequires:  kf6-kcoreaddons-devel
-# Frontend
-BuildRequires:  nodejs22
-BuildRequires:  pnpm
 
 # RPM auto-derives the linked-soname dependencies, so only what find-requires
 # cannot see is listed here. Everything desktop-specific stays soft, so one
 # package suits every desktop without pulling another's stack.
 Requires:       fuse3
+%if %{with gui}
 Requires:       libwebkit2gtk-4_1-0
 Requires:       libayatana-appindicator3-1
+%endif
 Recommends:     libcap-progs
 Recommends:     python3-gobject
 Recommends:     typelib-1_0-GdkPixbuf-2_0
@@ -86,12 +92,16 @@ but always falls back to normal buffered reads.
 export CARGO_ENCODED_RUSTFLAGS=$'--cfg\x1freqwest_unstable'
 export HOME="$PWD"
 
+%if %{with gui}
 pushd ncrs-gui
 pnpm install --frozen-lockfile
 pnpm build
 popd
 
 cargo build --release -p ncrs_core -p ncrs-gui --features ncrs-gui/custom-protocol
+%else
+cargo build --release -p ncrs_core
+%endif
 
 %if %{with dolphin}
 # Dolphin overlay plugin + ServiceMenu, KF6 only.
@@ -103,6 +113,8 @@ bash scripts/build-dolphin-plugin.sh --kf6 --dest dolphin-stage
 install_args="--dest %{buildroot} --bin-dir target/release"
 %if %{with dolphin}
 install_args="$install_args --dolphin-stage dolphin-stage"
+%else
+install_args="$install_args --skip-dolphin"
 %endif
 %if ! %{with gui}
 install_args="$install_args --skip-gui"
@@ -118,6 +130,8 @@ packaging/install-tree.sh $install_args
 %{_bindir}/ncrs-search-provider
 %{_bindir}/cr3-thumbnailer
 %{_userunitdir}/ncrs.service
+# rpmlint flags this as hardcoded-library-path, but /usr/lib/sysctl.d is the
+# correct systemd drop-in location (it is not a library directory).
 %{_prefix}/lib/sysctl.d/05-ncrs-quic.conf
 %{_datadir}/applications/es.rgon.ncrs.Open.desktop
 %{_datadir}/applications/es.rgon.ncrs.SearchProvider.desktop
@@ -222,8 +236,9 @@ if command -v gtk-update-icon-cache >/dev/null 2>&1; then
     gtk-update-icon-cache -q /usr/share/icons/hicolor || true
 fi
 reload_nautilus
-# The Dolphin plugin ships inside this package (no separate loader to wait on,
-# unlike python-nautilus), so it is always safe to reload on every install.
+# The Dolphin plugin ships inside this package when built with it (no separate
+# loader to wait on, unlike python-nautilus), so reloading is always safe --
+# and a no-op when the plugin is not present.
 reload_dolphin
 
 %preun
